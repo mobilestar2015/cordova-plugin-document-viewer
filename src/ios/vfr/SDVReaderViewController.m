@@ -1026,12 +1026,18 @@ static UIColor *previousColor;
     assert(document != nil); // Must have a valid ReaderDocument
     
     self.view.backgroundColor = [UIColor grayColor]; // Neutral gray
-    UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
     
-    if ([statusBar respondsToSelector:@selector(setBackgroundColor:)]) {
-        previousColor = statusBar.backgroundColor;
-        statusBar.backgroundColor = [UIColor blackColor];//set whatever color you like
-        
+    if (@available(iOS 13.0, *)) {
+        UINavigationBar* navigationBar = [self navigationController].navigationBar;
+        previousColor = navigationBar.backgroundColor;
+        navigationBar.backgroundColor = [UIColor blackColor];
+    } else {
+        // Fallback on earlier versions
+        UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
+        if ([statusBar respondsToSelector:@selector(setBackgroundColor:)]) {
+            previousColor = statusBar.backgroundColor;
+            statusBar.backgroundColor = [UIColor blackColor];//set whatever color you like
+        }
     }
 
     UIView *fakeStatusBar = nil; CGRect viewRect = self.view.bounds; // View bounds
@@ -1123,11 +1129,15 @@ static UIColor *previousColor;
 
 - (void)viewWillDisappear:(BOOL)animated{
     self.view.backgroundColor = [UIColor blackColor];
-    UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
-    
-    if ([statusBar respondsToSelector:@selector(setBackgroundColor:)]) {
+    if (@available(iOS 13.0, *)) {
+        UINavigationBar *navigationBar = [self navigationController].navigationBar;
+        navigationBar.backgroundColor = previousColor;
+    } else {
+        UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
         
-        statusBar.backgroundColor = previousColor;//set whatever color you like
+        if ([statusBar respondsToSelector:@selector(setBackgroundColor:)]) {
+            statusBar.backgroundColor = previousColor;//set whatever color you like
+        }
     }
     [super viewWillDisappear:animated];
     
